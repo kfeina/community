@@ -14,7 +14,7 @@ version: "3"
 
 services:
   db:
-    image: postgres:12
+    image: postgres:12-bullseye
     restart: always
     ports:
       - 5432:5432
@@ -28,7 +28,7 @@ services:
        - documizenet
 
   app:
-    image: debian:latest
+    image: debian:11
     command: /bin/sh -c "apt-get -qq update && apt-get -qq install -y wget && wget https://community-downloads.s3.us-east-2.amazonaws.com/documize-community-plus-linux-amd64 && chmod 777 ./documize-community-plus-linux-amd64 && ./documize-community-plus-linux-amd64"
     depends_on:
       - db
@@ -42,6 +42,18 @@ services:
       DOCUMIZELOCATION: selfhost
     networks:
       - documizenet
+  
+  # https://hub.docker.com/r/documize/conversion, check via http://localhost:8080/api/version, configure as http://myserver.mydomain.local:8080
+  api:
+    image: documize/conversion:3.4.0 
+    restart: on-failure:3
+    depends_on:
+      - app
+    ports:
+      - 8080:80
+    networks:
+       - documizenet
+
 
 volumes:
   db-data:
